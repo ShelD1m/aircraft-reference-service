@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: nsi
+      POSTGRES_USER: nsi
+      POSTGRES_PASSWORD: nsi_demo_password
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - nsi_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nsi -d nsi"]
+      interval: 4s
+      retries: 15
+      timeout: 3s
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/nsi
+      SPRING_DATASOURCE_USERNAME: nsi
+      SPRING_DATASOURCE_PASSWORD: nsi_demo_password
+      SERVER_PORT: 8080
+    ports:
+      - "127.0.0.1:8080:8080"
+volumes:
+  nsi_pgdata:

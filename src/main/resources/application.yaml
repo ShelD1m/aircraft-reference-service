@@ -1,0 +1,29 @@
+server:
+  port: ${SERVER_PORT:8080}
+spring:
+  application:
+    name: nsi-demo
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/nsi}
+    username: ${SPRING_DATASOURCE_USERNAME:nsi}
+    password: ${SPRING_DATASOURCE_PASSWORD:nsi_demo_password}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

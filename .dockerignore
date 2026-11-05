@@ -1,0 +1,6 @@
+.git
+.idea
+target
+*.zip
+*.docx
+*.pdf

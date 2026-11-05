@@ -1,0 +1,74 @@
+// Прототип НСИ / PostgreSQL. Открывается в https://dbdiagram.io/
+Table directories {
+  id uuid [pk]
+  code varchar(80) [not null, unique]
+  kind varchar(40) [not null]
+  name varchar(255) [not null]
+  description text
+  revision bigint [not null]
+  created_at timestamptz
+  updated_at timestamptz
+}
+Table reference_versions {
+  id uuid [pk]
+  directory_id uuid [not null, ref: > directories.id]
+  version_number int [not null]
+  status varchar(20) [not null]
+  base_version_id uuid [ref: > reference_versions.id]
+  change_reason text
+  created_by varchar(100)
+  approved_by varchar(100)
+  created_at timestamptz
+  updated_at timestamptz
+  published_at timestamptz
+  indexes { (directory_id,version_number) [unique] }
+}
+Table directory_records {
+  id uuid [pk]
+  logical_id uuid [not null]
+  version_id uuid [not null, ref: > reference_versions.id]
+  code varchar(100)
+  name varchar(255)
+  description text
+  data jsonb
+  created_at timestamptz
+  indexes { (version_id,code) [unique] (version_id,logical_id) [unique] }
+}
+Table procedure_stages {
+  id uuid [pk]
+  logical_id uuid [not null]
+  record_id uuid [not null, ref: > directory_records.id]
+  sequence_number int [not null]
+  operation_code varchar(100)
+  description text
+  expected_duration_seconds int
+  required_role varchar(80)
+  mandatory boolean
+  indexes { (record_id,sequence_number) [unique] (record_id,logical_id) [unique] }
+}
+Table audit_log {
+  id uuid [pk]
+  actor_id varchar(100)
+  entity_type varchar(60)
+  entity_id uuid
+  version_id uuid
+  operation varchar(50)
+  old_value jsonb
+  new_value jsonb
+  reason text
+  request_id varchar(100)
+  created_at timestamptz
+}
+Table idempotency_requests {
+  id uuid [pk]
+  actor_id varchar(100)
+  http_method varchar(10)
+  request_uri varchar(500)
+  idempotency_key varchar(200)
+  request_hash varchar(64)
+  response_status int
+  response_body jsonb
+  created_at timestamptz
+  indexes { (actor_id,http_method,request_uri,idempotency_key) [unique] }
+}
+// В PostgreSQL также задан partial unique index: ровно не более одной APPROVED-версии на directory_id.

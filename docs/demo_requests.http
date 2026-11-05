@@ -1,0 +1,48 @@
+### IntelliJ IDEA / VS Code REST Client. Требуется запущенный Docker Compose.
+@base = http://localhost:8080/api/v1/references
+@operationsDir = e1e2b838-c46d-5010-a959-57055aa566d5
+@operationsDraftV2 = b3fb7404-97e3-5499-917c-264ef53b823d
+@operationsApprovedV1 = 3de758b2-d70d-5f39-af6a-01ba4329e18d
+
+### 1. Данные активной версии (REFUEL = 1200)
+GET {{base}}/operation-types
+X-Demo-Role: TECHNICIAN
+
+### 2. Черновик с REFUEL = 1500 (пока НЕ отображается в публичном GET)
+GET {{base}}/directories/{{operationsDir}}/versions/{{operationsDraftV2}}/records
+X-Demo-Role: REFERENCE_EDITOR
+
+### 3. Отправить черновик на согласование
+POST {{base}}/directories/{{operationsDir}}/versions/{{operationsDraftV2}}/submit
+X-Demo-Role: REFERENCE_EDITOR
+Idempotency-Key: demo-submit-1
+
+### 4. Запрет утверждения редактором: ожидаем 403
+POST {{base}}/directories/{{operationsDir}}/versions/{{operationsDraftV2}}/approve
+X-Demo-Role: REFERENCE_EDITOR
+Idempotency-Key: demo-forbidden-approve-1
+
+### 5. Утвердить супервайзером
+POST {{base}}/directories/{{operationsDir}}/versions/{{operationsDraftV2}}/approve
+X-Demo-Role: SUPERVISOR
+Idempotency-Key: demo-approve-1
+
+### 6. Публичный API уже REFUEL = 1500
+GET {{base}}/operation-types
+X-Demo-Role: TECHNICIAN
+
+### 7. Старая версия не допускается для нового чек-листа
+GET {{base}}/versions/{{operationsApprovedV1}}/status
+X-Demo-Role: TECHNICIAN
+
+### 8. Получить готовый шаблон A320 с этапами
+GET {{base}}/procedure-templates/resolve?aircraft_type_code=A320&procedure_code=PRE_DEPARTURE
+X-Demo-Role: TECHNICIAN
+
+### 9. Журнал действий
+GET {{base}}/audit
+X-Demo-Role: SUPERVISOR
+
+### 10. Манифест для кэша
+GET {{base}}/sync/manifest
+X-Demo-Role: TECHNICIAN

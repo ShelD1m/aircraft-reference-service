@@ -1,0 +1,50 @@
+digraph NSI {
+  graph [rankdir=LR, fontname="Arial", bgcolor="white", pad="0.2", nodesep="0.55", ranksep="0.75", splines=polyline];
+  node [shape=plaintext, fontname="Arial"];
+  edge [color="#56677b", penwidth=1.5, arrowsize=0.7, fontname="Arial", fontsize=10];
+  directories [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7" COLOR="#56677b">
+    <TR><TD BGCOLOR="#e7eef5"><B>directories</B></TD></TR>
+    <TR><TD ALIGN="LEFT">id: UUID (PK)</TD></TR>
+    <TR><TD ALIGN="LEFT">code: VARCHAR (unique)</TD></TR>
+    <TR><TD ALIGN="LEFT">kind, name, description</TD></TR>
+    <TR><TD ALIGN="LEFT">revision: BIGINT</TD></TR></TABLE>>];
+  versions [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7" COLOR="#56677b">
+    <TR><TD BGCOLOR="#e7eef5"><B>reference_versions</B></TD></TR>
+    <TR><TD ALIGN="LEFT">id: UUID (PK)</TD></TR>
+    <TR><TD ALIGN="LEFT">directory_id: UUID (FK)</TD></TR>
+    <TR><TD ALIGN="LEFT">version_number: INT</TD></TR>
+    <TR><TD ALIGN="LEFT">status: DRAFT / REVIEW /</TD></TR>
+    <TR><TD ALIGN="LEFT">APPROVED / ARCHIVED</TD></TR>
+    <TR><TD ALIGN="LEFT">base_version_id: UUID</TD></TR></TABLE>>];
+  records [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7" COLOR="#56677b">
+    <TR><TD BGCOLOR="#e7eef5"><B>directory_records</B></TD></TR>
+    <TR><TD ALIGN="LEFT">id: UUID (PK)</TD></TR>
+    <TR><TD ALIGN="LEFT">logical_id: UUID</TD></TR>
+    <TR><TD ALIGN="LEFT">version_id: UUID (FK)</TD></TR>
+    <TR><TD ALIGN="LEFT">code, name, description</TD></TR>
+    <TR><TD ALIGN="LEFT">data: JSONB</TD></TR></TABLE>>];
+  stages [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7" COLOR="#56677b">
+    <TR><TD BGCOLOR="#e7eef5"><B>procedure_stages</B></TD></TR>
+    <TR><TD ALIGN="LEFT">id: UUID (PK)</TD></TR>
+    <TR><TD ALIGN="LEFT">record_id: UUID (FK)</TD></TR>
+    <TR><TD ALIGN="LEFT">sequence_number: INT</TD></TR>
+    <TR><TD ALIGN="LEFT">operation_code: VARCHAR</TD></TR>
+    <TR><TD ALIGN="LEFT">expected_duration_seconds</TD></TR></TABLE>>];
+  audit [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7" COLOR="#56677b">
+    <TR><TD BGCOLOR="#fff1de"><B>audit_log</B></TD></TR>
+    <TR><TD ALIGN="LEFT">id: UUID (PK)</TD></TR>
+    <TR><TD ALIGN="LEFT">actor_id, entity_type</TD></TR>
+    <TR><TD ALIGN="LEFT">entity_id, version_id</TD></TR>
+    <TR><TD ALIGN="LEFT">old_value / new_value: JSONB</TD></TR></TABLE>>];
+  idem [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7" COLOR="#56677b">
+    <TR><TD BGCOLOR="#fff1de"><B>idempotency_requests</B></TD></TR>
+    <TR><TD ALIGN="LEFT">id: UUID (PK)</TD></TR>
+    <TR><TD ALIGN="LEFT">actor_id, method, uri</TD></TR>
+    <TR><TD ALIGN="LEFT">idempotency_key</TD></TR>
+    <TR><TD ALIGN="LEFT">request_hash, response_body</TD></TR></TABLE>>];
+  directories -> versions [label="1 : N"];
+  versions -> records [label="1 : N"];
+  records -> stages [label="1 : N"];
+  versions -> versions [label="base_version_id", style=dashed, constraint=false];
+  {rank=same; audit; idem;}
+}

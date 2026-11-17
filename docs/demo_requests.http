@@ -1,0 +1,27 @@
+### Docker default; local default without integration profile is 8080.
+@base = http://localhost:8082
+@role = SUPERVISOR
+
+### CORE compatibility (no user token required by default)
+GET {{base}}/reference/aircraft-types/A320/checklist-template
+Accept: application/json
+
+### Published procedure in the original format
+GET {{base}}/api/v1/references/procedure-templates/resolve?aircraft_type_code=A320&procedure_code=PRE_DEPARTURE
+X-Demo-Role: {{role}}
+
+### Aircraft types
+GET {{base}}/api/v1/references/aircraft-types
+X-Demo-Role: {{role}}
+
+### Procedure version history
+GET {{base}}/api/v1/references/procedure-templates/versions
+X-Demo-Role: {{role}}
+
+### Audit
+GET {{base}}/api/v1/references/audit
+X-Demo-Role: {{role}}
+
+### With AUTH_ENABLED=true, replace demo headers with a real user access token.
+# GET {{base}}/api/v1/references/aircraft-types
+# Authorization: Bearer <user access token>
